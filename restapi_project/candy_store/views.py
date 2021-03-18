@@ -35,17 +35,3 @@ class CourierItemView(APIView):
             return Response({"couriers": bad_idx}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"couriers": good_idx}, status=status.HTTP_201_CREATED)
-
-'''
-        new_courier = CourierItem.objects.create(courier_id=courier_data['courier_id'],
-                                                 courier_type=courier_data['courier_type'])
-
-        new_courier.save()
-        serializer = CourierItemSerializer(new_courier)
-
-        print(f"new_courier: {new_courier}")
-        print(f"serializer: {serializer}")
-        print(f"serializer.data: {serializer.data}")
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
-'''
