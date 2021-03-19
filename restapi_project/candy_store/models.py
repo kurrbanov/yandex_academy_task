@@ -12,8 +12,7 @@ class WorkingHours(models.Model):
 class CourierItem(models.Model):
     courier_id = models.IntegerField(blank=False, unique=True)
     courier_type = models.CharField(max_length=4, blank=False)  # добавить выбор
-    region = models.ManyToManyField(Region, related_name='region',
-                                    blank=False)
+    regions = models.ManyToManyField(Region, related_name='regions', blank=False)
     working_hours = models.ManyToManyField(WorkingHours, related_name='working_hours',
                                            blank=False)
     capacity = models.IntegerField(default=None)

@@ -21,8 +21,8 @@ class CourierItemView(APIView):
         good_idx = []
 
         for json_obj in courier_data['data']:
-            change_list_json = json_obj['region']
-            json_obj['region'] = [{"value": val} for val in change_list_json]
+            change_list_json = json_obj['regions']
+            json_obj['regions'] = [{"value": val} for val in change_list_json]
             change_list_json = json_obj['working_hours']
             json_obj['working_hours'] = [{"value": val for val in change_list_json}]
             change_list_json.clear()

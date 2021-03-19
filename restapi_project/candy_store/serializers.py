@@ -16,15 +16,15 @@ class WorkingHoursSerializer(serializers.ModelSerializer):
 
 
 class CourierItemSerializer(serializers.ModelSerializer):
-    region = RegionSerializer(many=True)
+    regions = RegionSerializer(many=True)
     working_hours = WorkingHoursSerializer(many=True)
 
     class Meta:
         model = CourierItem
-        fields = ['courier_id', 'courier_type', 'region', 'working_hours']
+        fields = ['courier_id', 'courier_type', 'regions', 'working_hours']
 
     def create(self, validated_data):
-        region_data = validated_data.pop('region')
+        region_data = validated_data.pop('regions')
         working_hours_data = validated_data.pop('working_hours')
 
         if validated_data['courier_type'] == 'foot':
@@ -36,7 +36,7 @@ class CourierItemSerializer(serializers.ModelSerializer):
 
         courier_item = CourierItem.objects.create(**validated_data)
         for reg in region_data:
-            courier_item.region.create(**reg)
+            courier_item.regions.create(**reg)
         for work in working_hours_data:
             courier_item.working_hours.create(**work)
 
