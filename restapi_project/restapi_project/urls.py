@@ -20,5 +20,6 @@ from candy_store import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('courier/', views.CourierItemView.as_view()),
+    path('orders/', views.OrderItemView.as_view()),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]

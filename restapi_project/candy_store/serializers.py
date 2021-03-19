@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import CourierItem, Region, WorkingHours
+from .models import CourierItem, Region, WorkingHours, OrderItem, DeliveryHours
 
 
 class RegionSerializer(serializers.ModelSerializer):
@@ -41,3 +41,25 @@ class CourierItemSerializer(serializers.ModelSerializer):
             courier_item.working_hours.create(**work)
 
         return courier_item
+
+
+class DeliveryHoursSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DeliveryHours
+        fields = ['value']
+
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    delivery_hours = DeliveryHoursSerializer(many=True)
+
+    class Meta:
+        model = OrderItem
+        fields = ['order_id', 'weight', 'region', 'delivery_hours']
+
+    def create(self, validated_data):
+        delivery_hours_data = validated_data.pop('delivery_hours')
+        order_item = OrderItem.objects.create(**validated_data)
+        for hours in delivery_hours_data:
+            order_item.delivery_hours.create(**hours)
+
+        return order_item
