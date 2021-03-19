@@ -17,13 +17,16 @@ class CourierItemView(APIView):
 
     def post(self, request, *args, **kwargs):
         courier_data = request.data
-        print(f"courier_data: {courier_data}")
-        print(f"{courier_data['data'][0]}")
-        print()
         bad_idx = []
         good_idx = []
 
         for json_obj in courier_data['data']:
+            change_list_json = json_obj['region']
+            json_obj['region'] = [{"value": val} for val in change_list_json]
+            change_list_json = json_obj['working_hours']
+            json_obj['working_hours'] = [{"value": val for val in change_list_json}]
+            change_list_json.clear()
+
             new_courier = CourierItemSerializer(data=json_obj)
             if new_courier.is_valid():
                 new_courier.save()
