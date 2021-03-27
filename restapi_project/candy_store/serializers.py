@@ -21,8 +21,7 @@ class CourierItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CourierItem
-        #fields = ['courier_id', 'courier_type', 'regions', 'working_hours', 'capacity']
-        fields = '__all__'
+        fields = ['courier_id', 'courier_type', 'regions', 'working_hours', 'capacity', 'assign_time']
 
     def create(self, validated_data):
         region_data = validated_data.pop('regions')
@@ -74,27 +73,9 @@ class OrdersAssignSerializer(serializers.ModelSerializer):
         model = OrderItem
         fields = ['courier']
         depth = 1
-    '''
-        for hours in couriers_data.data[idx_of_courier]['working_hours']:
-            hour_begin, hour_end = int(hours['value'][:2]), int(hours['value'][6:8])
-            minute_begin, minute_end = int(hours['value'][3:5]), int(hours['value'][9:11])
-            for orders_idx in order_data.data: # by the objects
-                for order_time in orders_idx['delivery_hours']: # by the time of object
-                    order_hour = [int(order_time['value'][:2]), int(order_time['value'][6:8])]
-                    order_minute = [int(order_time['value'][3:5]), int(order_time['value'][9:11])]
-        '''
-    '''
-    def create(self, validated_data):
-        # couriers_data = CourierItemSerializer(CourierItem.objects.all(), many=True)
-        # order_data = OrderItemSerializer(OrderItem.objects.all(), many=True)
 
-        print(validated_data)
-        courier = CourierItem.objects.filter(courier_id=validated_data['courier_id'])
-        if len(courier) > 0:
-            orders_data = OrderItem.objects.all().values()
-            for order in orders_data:
-                if order['weight'] <= courier[0].capacity:
-                    order['courier_id'] = courier[0]
-                    order.save()
-        # Looking the right time
-    '''
+
+class OrderCompleteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderItem
+        fields = ['done']

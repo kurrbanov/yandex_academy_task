@@ -30,6 +30,7 @@ class OrderItem(models.Model):
                                  validators=[MaxValueValidator(50)])
     region = models.IntegerField(blank=False)
     delivery_hours = models.ManyToManyField(DeliveryHours, related_name='delivery_hours')
-    courier = models.ForeignKey(CourierItem, on_delete=models.CASCADE,
+    courier = models.ForeignKey(CourierItem, on_delete=models.SET_NULL,
                                 default=None, null=True)
     done = models.BooleanField(default=False)
+    complete_time = models.CharField(max_length=30, default="")
