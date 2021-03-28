@@ -55,7 +55,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = ['order_id', 'weight', 'region', 'delivery_hours', 'courier']
-        depth = 1
+        depth = 2
 
     def create(self, validated_data):
         delivery_hours_data = validated_data.pop('delivery_hours')
@@ -67,15 +67,31 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 
 class OrdersAssignSerializer(serializers.ModelSerializer):
-    #courier = CourierItemSerializer(many=True)
-
     class Meta:
         model = OrderItem
         fields = ['courier']
-        depth = 1
+        depth = 2
 
 
 class OrderCompleteSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = ['done']
+
+
+class CourierAPSerializer(serializers.ModelSerializer):
+    regions = serializers.SlugRelatedField(many=True, read_only=True, slug_field='value')
+    working_hours = serializers.SlugRelatedField(many=True, read_only=True, slug_field='value')
+
+    class Meta:
+        model = CourierItem
+        fields = ['courier_id', 'courier_type', 'regions', 'working_hours', 'rating', 'earnings']
+
+
+class CourierItemAPSerializer(serializers.ModelSerializer):
+    regions = serializers.SlugRelatedField(many=True, read_only=True, slug_field='value')
+    working_hours = serializers.SlugRelatedField(many=True, read_only=True, slug_field='value')
+
+    class Meta:
+        model = CourierItem
+        fields = ['courier_id', 'courier_type', 'regions', 'working_hours']

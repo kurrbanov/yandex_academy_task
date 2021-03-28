@@ -12,12 +12,14 @@ class WorkingHours(models.Model):
 
 class CourierItem(models.Model):
     courier_id = models.IntegerField(blank=False, unique=True)
-    courier_type = models.CharField(max_length=4, blank=False)  # добавить выбор
+    courier_type = models.CharField(max_length=4, blank=False)
     regions = models.ManyToManyField(Region, related_name='regions', blank=False)
     working_hours = models.ManyToManyField(WorkingHours, related_name='working_hours',
                                            blank=False)
     capacity = models.IntegerField(default=None)
-    assign_time = models.CharField(max_length=25, default="")
+    assign_time = models.DateTimeField(default=None, null=True)
+    rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.00)
+    earnings = models.IntegerField(default=0)
 
 
 class DeliveryHours(models.Model):
@@ -33,4 +35,5 @@ class OrderItem(models.Model):
     courier = models.ForeignKey(CourierItem, on_delete=models.SET_NULL,
                                 default=None, null=True)
     done = models.BooleanField(default=False)
-    complete_time = models.CharField(max_length=30, default="")
+    complete_time = models.DateTimeField(default=None, null=True)
+    counted = models.BooleanField(default=False)
