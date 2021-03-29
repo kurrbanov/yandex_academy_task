@@ -47,10 +47,10 @@ orders = {
     ]
 }
 
-response = req.post(base + 'couriers/', data=json.dumps(couriers),
+response = req.post(base + 'couriers', data=json.dumps(couriers),
                     headers=headers)
 print(response.text)
-response = req.post(base + 'orders/', data=json.dumps(orders),
+response = req.post(base + 'orders', data=json.dumps(orders),
                     headers=headers)
 print(response.text)
 
@@ -58,7 +58,7 @@ body = {
     "courier_id": 1
 }
 
-response = req.post(base + 'orders/assign/', data=json.dumps(body), headers=headers)
+response = req.post(base + 'orders/assign', data=json.dumps(body), headers=headers)
 print(response.text)
 
 body = {
@@ -71,7 +71,7 @@ body = {
     "courier_id": 1
 }
 
-response = req.post(base + 'orders/assign/', data=json.dumps(body), headers=headers)
+response = req.post(base + 'orders/assign', data=json.dumps(body), headers=headers)
 print(response.text)
 body = {
     "courier_type": "car"
@@ -84,7 +84,7 @@ body = {
     "courier_id": 1
 }
 
-response = req.post(base + 'orders/assign/', data=json.dumps(body), headers=headers)
+response = req.post(base + 'orders/assign', data=json.dumps(body), headers=headers)
 print(response.text)
 
 body = {
@@ -93,7 +93,7 @@ body = {
     "complete_time": "2021-03-29T19:50:01.42Z"
 }
 
-response = req.post(base + 'orders/complete/', data=json.dumps(body), headers=headers)
+response = req.post(base + 'orders/complete', data=json.dumps(body), headers=headers)
 print(response.text)
 
 body = {
@@ -102,7 +102,7 @@ body = {
     "complete_time": "2021-03-29T19:50:01.42Z"
 }
 
-response = req.post(base + 'orders/complete/', data=json.dumps(body), headers=headers)
+response = req.post(base + 'orders/complete', data=json.dumps(body), headers=headers)
 print(response.text)
 
 response = req.get(base + 'couriers/1')

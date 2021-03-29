@@ -18,7 +18,7 @@ from django.urls import path, include
 from candy_store import views
 
 urlpatterns = [
-    path('admin', admin.site.urls),
+    path('admin/', admin.site.urls),
     path('couriers', views.CourierItemView.as_view()),
     path('orders', views.OrderItemView.as_view()),
     path('orders/assign', views.OrdersAssignView.as_view()),
