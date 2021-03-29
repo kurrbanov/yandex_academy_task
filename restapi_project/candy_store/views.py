@@ -312,6 +312,10 @@ class CourierAPView(APIView):
                     courier_serializer = CourierItemAPBADSerializer(CourierItem.objects.filter(courier_id=c_id),
                                                                     many=True)
                     return Response(courier_serializer.data, status=status.HTTP_200_OK)
+                elif courier.earnings != 0:
+                    courier_serializer = CourierAPSerializer(CourierItem.objects.filter(courier_id=c_id),
+                                                             many=True)
+                    return Response(courier_serializer.data, status=status.HTTP_200_OK)
                 else:
                     courier_serializer = CourierItemAPBADSerializer(CourierItem.objects.filter(courier_id=c_id),
                                                                     many=True)
