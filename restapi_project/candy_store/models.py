@@ -20,6 +20,7 @@ class CourierItem(models.Model):
     assign_time = models.DateTimeField(default=None, null=True)
     rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.00)
     earnings = models.IntegerField(default=0)
+    count_of_delivery = models.IntegerField(default=0)
 
 
 class DeliveryHours(models.Model):
@@ -37,3 +38,5 @@ class OrderItem(models.Model):
     done = models.BooleanField(default=False)
     complete_time = models.DateTimeField(default=None, null=True)
     counted = models.BooleanField(default=False)
+    type_of_courier_assign = models.CharField(default="", max_length=5)
+    cnt_of_delivery = models.IntegerField(default=0)

@@ -5,7 +5,7 @@ from rest_framework import status
 
 from .models import CourierItem, OrderItem, Region, WorkingHours
 from .serializers import CourierItemSerializer, OrderItemSerializer, OrdersAssignSerializer, \
-    OrderCompleteSerializer, CourierAPSerializer, CourierItemAPSerializer
+    OrderCompleteSerializer, CourierAPSerializer, CourierItemAPSerializer, CourierItemAPBADSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -13,13 +13,15 @@ from rest_framework.response import Response
 class CourierItemView(APIView):
     serializer_class = CourierItemSerializer
 
-    def get(self, request, *args, **kwargs):
+    @staticmethod
+    def get(request, *args, **kwargs):
         couriers = CourierItem.objects.all()
         serializer = CourierItemSerializer(couriers, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def post(self, request, *args, **kwargs):
+    @staticmethod
+    def post(request, *args, **kwargs):
         courier_data = request.data
         bad_idx = []
         good_idx = []
@@ -55,13 +57,15 @@ class CourierItemView(APIView):
 class OrderItemView(APIView):
     serializer_class = OrderItemSerializer
 
-    def get(self, request, *args, **kwargs):
+    @staticmethod
+    def get(request, *args, **kwargs):
         orders = OrderItem.objects.all()
         serializer = OrderItemSerializer(orders, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def post(self, request, *args, **kwargs):
+    @staticmethod
+    def post(request, *args, **kwargs):
         order_data = request.data
         bad_idx = []
         good_idx = []
@@ -131,7 +135,7 @@ class OrderAssignValidators:
 
     @staticmethod
     def check_hours(hours_order, hours_courier):
-        minutes_line = [[0 for i in range(60)] for j in range(24)]
+        minutes_line = [[0 for _ in range(60)] for __ in range(24)]
 
         # покраска временной линии курьера
         OrderAssignValidators.paint_time_line(minutes_line, hours_courier, 1)
@@ -143,13 +147,15 @@ class OrderAssignValidators:
 class OrdersAssignView(APIView):
     serializer = OrderItemSerializer
 
-    def get(self, request, *args, **kwargs):
+    @staticmethod
+    def get(request, *args, **kwargs):
         order = OrderItem.objects.all()
         serializer = OrdersAssignSerializer(order, many=True)
 
         return Response(serializer.data)
 
-    def post(self, request, *args, **kwargs):
+    @staticmethod
+    def post(request, *args, **kwargs):
         orders_data = OrderItem.objects.all()
 
         courier_item = CourierItem.objects.filter(courier_id=request.data['courier_id'])
@@ -160,6 +166,18 @@ class OrdersAssignView(APIView):
         courier_item = courier_item[0]
         count_assign_orders = 0
 
+        if courier_item.count_of_delivery == 0:
+            courier_item.count_of_delivery += 1
+            courier_item.save()
+
+        not_full_orders = False
+
+        lst = courier_item.orderitem_set.all()
+        for order in lst:
+            if not order.done:
+                not_full_orders = True
+                break
+
         for order in orders_data:
             if not(order.courier is None) and order.done:
                 continue
@@ -167,8 +185,11 @@ class OrdersAssignView(APIView):
             if order.weight <= courier_item.capacity and \
                     OrderAssignValidators.check_region(order.region, courier_item.regions.all()) and \
                     OrderAssignValidators.check_hours(order.delivery_hours.all(),
-                                                      courier_item.working_hours.all()):
+                                                      courier_item.working_hours.all()) and \
+                    order.type_of_courier_assign == "" and not not_full_orders:
                 order.courier = courier_item
+                order.type_of_courier_assign = courier_item.courier_type
+                order.cnt_of_delivery = courier_item.count_of_delivery
                 order.save()
                 count_assign_orders += 1
 
@@ -179,6 +200,7 @@ class OrdersAssignView(APIView):
 
         if count_assign_orders > 0:
             courier_item.assign_time = datetime.datetime.utcnow()
+            courier_item.count_of_delivery += 1
             courier_item.save()
 
         if len(ans) > 0:
@@ -189,13 +211,15 @@ class OrdersAssignView(APIView):
 
 
 class OrderCompleteView(APIView):
-    def get(self, request, *args, **kwargs):
+    @staticmethod
+    def get(request, *args, **kwargs):
         order = OrderItem.objects.all()
         serializer = OrderCompleteSerializer(order, many=True)
 
         return Response(serializer.data)
 
-    def post(self, request, *args, **kwargs):
+    @staticmethod
+    def post(request, *args, **kwargs):
         courier = CourierItem.objects.filter(courier_id=request.data['courier_id'])
 
         if len(courier) == 0:
@@ -213,7 +237,8 @@ class OrderCompleteView(APIView):
 
 
 class CourierAPView(APIView):
-    def patch(self, request, c_id):
+    @staticmethod
+    def patch(request, c_id):
         courier_data = CourierItem.objects.filter(courier_id=c_id)
 
         if len(courier_data) == 0:
@@ -261,13 +286,14 @@ class CourierAPView(APIView):
                    OrderAssignValidators.check_hours(order.delivery_hours.all(), courier.working_hours.all()) and
                    order.weight <= courier.capacity) and not order.done:
                 order.courier = None
-                order.complete_time = ""
+                order.complete_time = None
                 order.save()
 
         courier_serializer = CourierItemAPSerializer(CourierItem.objects.all(), many=True)
         return Response(courier_serializer.data, status=status.HTTP_200_OK)
 
-    def get(self, request, c_id):
+    @staticmethod
+    def get(request, c_id):
         # подсчёт рейтинга
         courier = CourierItem.objects.filter(courier_id=c_id)
         if len(courier) == 0:
@@ -276,14 +302,31 @@ class CourierAPView(APIView):
         courier = courier[0]
         orders = courier.orderitem_set.all()
 
+        if len(orders) == 0:
+            courier_serializer = CourierItemAPBADSerializer(CourierItem.objects.filter(courier_id=c_id), many=True)
+            return Response(courier_serializer.data, status=status.HTTP_200_OK)
+
+        for order in orders:
+            if not order.done:
+                if courier.earnings == 0 or float(courier.rating) == 0.00:
+                    courier_serializer = CourierItemAPBADSerializer(CourierItem.objects.filter(courier_id=c_id),
+                                                                    many=True)
+                    return Response(courier_serializer.data, status=status.HTTP_200_OK)
+                else:
+                    courier_serializer = CourierItemAPBADSerializer(CourierItem.objects.filter(courier_id=c_id),
+                                                                    many=True)
+                    return Response(courier_serializer.data, status=status.HTTP_200_OK)
+
         td = {
             # region: [time_sum_sec, количество выполненных заказов из данного региона]
         }
-        count_done_orders = 0
+        count_orders = 0
+        tpe_delivery = ""
         for order in orders:
-            if order.done and not order.counted:
-                count_done_orders += 1
+            if not order.counted and order.cnt_of_delivery == courier.count_of_delivery - 1:
+                count_orders += 1
                 time_delivery = order.complete_time - courier.assign_time
+                tpe_delivery = order.type_of_courier_assign
                 if order.region not in td:
                     td[order.region] = [time_delivery.seconds, 1]
                 else:
@@ -293,27 +336,29 @@ class CourierAPView(APIView):
                 order.counted = True
                 order.save()
 
-        t = -1
-        for region in td:
-            average_time_by_region = td[region][0] / td[region][1]
-            if t == -1:
-                t = average_time_by_region
-                continue
-            t = min(t, average_time_by_region)
-
-        if count_done_orders > 0:
-            # courier.rating = round((float(courier.rating) + round((60 * 60 - min(t, 60 * 60))/(60 * 60) * 5, 2)) / 2, 2)
-            courier.rating = round((60 * 60 - min(t, 60 * 60))/(60 * 60) * 5, 2)
+        if count_orders > 0:
+            if tpe_delivery == "foot":
+                courier.earnings += 1000
+            elif tpe_delivery == "bike":
+                courier.earnings += 2500
+            elif tpe_delivery == "car":
+                courier.earnings += 4500
             courier.save()
 
-            # подсчёт заработка
-            if courier.courier_type == 'foot':
-                courier.earnings += count_done_orders * 1000
-            elif courier.courier_type == 'bike':
-                courier.earnings += count_done_orders * 2500
-            elif courier.courier_type == 'car':
-                courier.earnings += count_done_orders * 4500
+            t = -1
+            for region in td:
+                average_time_by_region = td[region][0] / td[region][1]
+                if t == -1:
+                    t = average_time_by_region
+                    continue
+                t = min(t, average_time_by_region)
+
+            if float(courier.rating) == 0.00:
+                courier.rating = round((60 * 60 - min(t, 60 * 60))/(60 * 60) * 5, 2)
+            else:
+                rate = round((60 * 60 - min(t, 60 * 60))/(60 * 60) * 5, 2)
+                courier.rating = round((rate + float(courier.rating)) / 2, 2)
             courier.save()
 
-        courier_serializer = CourierAPSerializer(CourierItem.objects.all(), many=True)
+        courier_serializer = CourierAPSerializer(CourierItem.objects.filter(courier_id=c_id), many=True)
         return Response(courier_serializer.data, status=status.HTTP_200_OK)

@@ -95,3 +95,12 @@ class CourierItemAPSerializer(serializers.ModelSerializer):
     class Meta:
         model = CourierItem
         fields = ['courier_id', 'courier_type', 'regions', 'working_hours']
+
+
+class CourierItemAPBADSerializer(serializers.ModelSerializer):
+    regions = serializers.SlugRelatedField(many=True, read_only=True, slug_field='value')
+    working_hours = serializers.SlugRelatedField(many=True, read_only=True, slug_field='value')
+
+    class Meta:
+        model = CourierItem
+        fields = ['courier_id', 'courier_type', 'regions', 'working_hours', 'earnings']
