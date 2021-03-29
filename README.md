@@ -105,28 +105,9 @@ server {
 ```
 
 
-Пример отправки запроса на сервер через файл tests.py:
+Пример отправки запроса на сервер
 ```python
-import json
 import requests as req
-
-headers = {
-    'Content-Type': 'application/json'
-}
-base = 'http://ip:8080/'
-
-couriers = {
-    "data": [
-        {
-            "courier_id": 1,
-            "courier_type": "foot",
-            "regions": [1],
-            "working_hours": ["00:00-23:59"]
-        }
-    ]
-}
-
-response = req.post(base + 'couriers', data=json.dumps(couriers),
-                    headers=headers)
+response = req.get('http://0.0.0.0:8080/couriers/1')
 print(response.text)
 ```
