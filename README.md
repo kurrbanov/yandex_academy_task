@@ -103,3 +103,11 @@ server {
 ```
 ./start_gunicorn.sh
 ```
+
+
+Пример отправки запроса на сервер
+```python
+import requests as req
+response = req.get('http://0.0.0.0:8080/couriers/1')
+print(response.text)
+```
