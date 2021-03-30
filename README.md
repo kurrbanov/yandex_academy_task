@@ -101,7 +101,7 @@ server {
 
 Запускаем сервер командой
 ```
-./start_gunicorn.sh
+./bin/start_gunicorn.sh
 ```
 
 
