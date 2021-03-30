@@ -170,27 +170,36 @@ class OrdersAssignView(APIView):
             courier_item.count_of_delivery += 1
             courier_item.save()
 
-        not_full_orders = False
+        full_orders = True
 
         lst = courier_item.orderitem_set.all()
         for order in lst:
             if not order.done:
-                not_full_orders = True
+                full_orders = False
                 break
 
+        check_assign_orders = {}
         for order in orders_data:
-            if not(order.courier is None) and order.done:
+            if not(order.courier is None) or order.done:
                 continue
 
             if order.weight <= courier_item.capacity and \
                     OrderAssignValidators.check_region(order.region, courier_item.regions.all()) and \
                     OrderAssignValidators.check_hours(order.delivery_hours.all(),
-                                                      courier_item.working_hours.all()) and \
-                    order.type_of_courier_assign == "" and not not_full_orders:
-                order.courier = courier_item
-                order.type_of_courier_assign = courier_item.courier_type
-                order.cnt_of_delivery = courier_item.count_of_delivery
-                order.save()
+                                                      courier_item.working_hours.all()) and full_orders:
+                check_assign_orders[order.order_id] = float(order.weight)
+
+        check_assign_orders = dict(sorted(check_assign_orders.items(), key=lambda order_item: order_item[1]))
+
+        assign_capacity = courier_item.capacity
+        for order in check_assign_orders:
+            if assign_capacity >= check_assign_orders[order]:
+                assign_capacity -= check_assign_orders[order]
+                cur_order = OrderItem.objects.get(order_id=order)
+                cur_order.courier = courier_item
+                cur_order.type_of_courier_assign = courier_item.courier_type
+                cur_order.cnt_of_delivery = courier_item.count_of_delivery
+                cur_order.save()
                 count_assign_orders += 1
 
         ans = []
@@ -280,16 +289,35 @@ class CourierAPView(APIView):
                 return Response(status=status.HTTP_400_BAD_REQUEST)
 
         # обновление списка заказов
+        good_orders = {}
+
         orders = courier.orderitem_set.all()
         for order in orders:
-            if not(OrderAssignValidators.check_region(order.region, courier.regions.all()) and
-                   OrderAssignValidators.check_hours(order.delivery_hours.all(), courier.working_hours.all()) and
-                   order.weight <= courier.capacity) and not order.done:
+            if order.weight <= courier.capacity and \
+                    OrderAssignValidators.check_region(order.region, courier.regions.all()) and \
+                    OrderAssignValidators.check_hours(order.delivery_hours.all(),
+                                                      courier.working_hours.all()) and not order.done:
+                good_orders[order.order_id] = order.weight
+            else:
+                order.courier = None
+                order.save()
+
+        if len(good_orders) == 0:
+            courier.count_of_delivery -= 1
+            courier.save()
+
+        good_orders = dict(sorted(good_orders.items(), key=lambda item: item[0]))
+        assign_capacity = courier.capacity
+        for key in good_orders:
+            order = OrderItem.objects.get(order_id=key)
+            if assign_capacity >= float(order.weight):
+                assign_capacity -= float(order.weight)
+            else:
                 order.courier = None
                 order.complete_time = None
                 order.save()
 
-        courier_serializer = CourierItemAPSerializer(CourierItem.objects.all(), many=True)
+        courier_serializer = CourierItemAPSerializer(CourierItem.objects.get(courier_id=c_id))
         return Response(courier_serializer.data, status=status.HTTP_200_OK)
 
     @staticmethod
@@ -364,5 +392,7 @@ class CourierAPView(APIView):
                 courier.rating = round((rate + float(courier.rating)) / 2, 2)
             courier.save()
 
-        courier_serializer = CourierAPSerializer(CourierItem.objects.filter(courier_id=c_id), many=True)
-        return Response(courier_serializer.data, status=status.HTTP_200_OK)
+        courier_serializer = CourierAPSerializer(CourierItem.objects.get(courier_id=c_id))
+        courier_data = courier_serializer.data
+        courier_data['rating'] = float(courier_serializer.data['rating'])
+        return Response(courier_data, status=status.HTTP_200_OK)
