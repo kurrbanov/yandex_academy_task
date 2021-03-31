@@ -107,7 +107,30 @@ server {
 
 Пример отправки запроса на сервер
 ```python
+import json
+
 import requests as req
-response = req.get('http://0.0.0.0:8080/couriers/1')
+
+base = 'http://0.0.0.0:8080/'
+headers = {
+    'Content-Type': 'application/json'
+}
+
+body = {
+    "data": [
+        {
+            "courier_id": 1,
+            "courier_type": "foot",
+            "regions": [1, 12, 22],
+            "working_hours": ["00:00-23:59"]
+        }
+    ]
+}
+
+response = req.post(base + 'couriers', data=json.dumps(body), headers=headers)
 print(response.text)
+
+response = req.get(base + 'couriers/1')
+print(response.text)
+
 ```
