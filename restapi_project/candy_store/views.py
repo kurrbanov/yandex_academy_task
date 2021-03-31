@@ -331,22 +331,19 @@ class CourierAPView(APIView):
         orders = courier.orderitem_set.all()
 
         if len(orders) == 0:
-            courier_serializer = CourierItemAPBADSerializer(CourierItem.objects.filter(courier_id=c_id), many=True)
+            courier_serializer = CourierItemAPBADSerializer(CourierItem.objects.get(courier_id=c_id))
             return Response(courier_serializer.data, status=status.HTTP_200_OK)
 
         for order in orders:
             if not order.done:
                 if courier.earnings == 0 or float(courier.rating) == 0.00:
-                    courier_serializer = CourierItemAPBADSerializer(CourierItem.objects.filter(courier_id=c_id),
-                                                                    many=True)
+                    courier_serializer = CourierItemAPBADSerializer(CourierItem.objects.get(courier_id=c_id))
                     return Response(courier_serializer.data, status=status.HTTP_200_OK)
                 elif courier.earnings != 0:
-                    courier_serializer = CourierAPSerializer(CourierItem.objects.filter(courier_id=c_id),
-                                                             many=True)
+                    courier_serializer = CourierAPSerializer(CourierItem.objects.get(courier_id=c_id))
                     return Response(courier_serializer.data, status=status.HTTP_200_OK)
                 else:
-                    courier_serializer = CourierItemAPBADSerializer(CourierItem.objects.filter(courier_id=c_id),
-                                                                    many=True)
+                    courier_serializer = CourierItemAPBADSerializer(CourierItem.objects.get(courier_id=c_id))
                     return Response(courier_serializer.data, status=status.HTTP_200_OK)
 
         td = {
