@@ -1,70 +1,60 @@
 import json
 
-from requests import *
-from datetime import datetime as dt
+import requests as req
 
 base = 'http://127.0.0.1:8000/'
 headers = {
     'Content-Type': 'application/json'
 }
 
-
-def request(method, url, data={}):
-    print(method(base + url, data=json.dumps(data), headers=headers).text)
-
-
-request(post, 'couriers', {
+body = {
     "data": [
         {
             "courier_id": 1,
-            "courier_type": "bike",
-            "regions": [1],
+            "courier_type": "foot",
+            "regions": [1, 12, 22],
             "working_hours": ["00:00-23:59"]
         },
         {
             "courier_id": 2,
-            "courier_type": "car",
-            "regions": [1],
+            "courier_type": "fool",
+            "regions": [1, 12, 22],
             "working_hours": ["00:00-23:59"]
         }
     ]
-})
+}
 
-request(post, 'orders', {
+response = req.post(base + 'couriers', data=json.dumps(body), headers=headers)
+print(response.text)
+
+response = req.get(base + 'couriers')
+print(response.text)
+
+body = {
     "data": [
         {
             "order_id": 1,
-            "weight": 8,
-            "region": 1,
-            "delivery_hours": ["11:00-12:00"]
+            "weight": 1,
+            "region": 16,
+            "delivery_hours": ["09:00-12:00", "16:00-21:30"]
         },
-        {
+{
             "order_id": 2,
-            "weight": 12,
-            "region": 1,
-            "delivery_hours": ["11:00-12:00"]
+            "weight": 0.001,
+            "region": 16,
+            "delivery_hours": ["09:00-12:00", "16:00-21:30"]
         },
-        {
+{
             "order_id": 3,
-            "weight": 14,
-            "region": 1,
-            "delivery_hours": ["11:00-12:00"]
-        },
-        {
-            "order_id": 4,
-            "weight": 16,
-            "region": 1,
-            "delivery_hours": ["11:00-12:00"]
-        },
+            "weight": 1,
+            "region": 16,
+            "delivery_hours": []
+        }
     ]
-})
+}
 
-request(post, 'orders/assign', {"courier_id": 1})
+response = req.post(base + 'orders', data=json.dumps(body), headers=headers)
+print(response.text)
 
-request(patch, 'couriers/1', {"courier_type": "foot"})
-
-request(post, 'orders/assign', {"courier_id": 2})
-
-request(post, 'orders/complete', {'courier_id': 1, 'order_id': 1, 'complete_time': dt.utcnow().isoformat() + 'Z'})
-
-request(get, 'couriers/1')
+response = req.get(base + 'orders')
+print(response.text)

@@ -22,11 +22,10 @@ class CourierItemView(APIView):
 
     @staticmethod
     def post(request, *args, **kwargs):
-        courier_data = request.data
         bad_idx = []
         good_idx = []
 
-        for json_obj in courier_data['data']:
+        for json_obj in request.data['data']:
             change_list_json = json_obj['regions']
             json_obj['regions'] = [{"value": val} for val in change_list_json]
             change_list_json = json_obj['working_hours']
@@ -40,7 +39,6 @@ class CourierItemView(APIView):
             new_courier = CourierItemSerializer(data=json_obj)
             if new_courier.is_valid() and len(json_obj['regions']) > 0 and \
                     len(json_obj['working_hours']) > 0 and check_type(json_obj['courier_type']):
-                new_courier.save()
                 good_idx.append({"id": new_courier.data['courier_id']})
             else:
                 bad_idx.append({"id": new_courier.data['courier_id']})
@@ -49,6 +47,11 @@ class CourierItemView(APIView):
             good_idx.clear()
             return Response({"validation_error": {"couriers": bad_idx}},
                             status=status.HTTP_400_BAD_REQUEST)
+
+        for json_obj in request.data['data']:
+            new_courier = CourierItemSerializer(data=json_obj)
+            new_courier.is_valid()
+            new_courier.save()
 
         bad_idx.clear()
         return Response({"couriers": good_idx}, status=status.HTTP_201_CREATED)
@@ -66,29 +69,33 @@ class OrderItemView(APIView):
 
     @staticmethod
     def post(request, *args, **kwargs):
-        order_data = request.data
         bad_idx = []
         good_idx = []
 
-        for json_obj in order_data['data']:
+        for json_obj in request.data['data']:
             change_list_json = json_obj['delivery_hours']
             json_obj['delivery_hours'] = [{"value": val} for val in change_list_json]
             change_list_json.clear()
 
-            if len(json_obj['delivery_hours']) == 0:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
+            def check_dh(hours):
+                if len(hours) > 0:
+                    return True
 
             new_order_item = OrderItemSerializer(data=json_obj)
-            if new_order_item.is_valid():
-                new_order_item.save()
+            if new_order_item.is_valid() and check_dh(json_obj['delivery_hours']):
                 good_idx.append({"id": new_order_item.data['order_id']})
             else:
                 bad_idx.append({"id": new_order_item.data['order_id']})
-                # return Response(new_order_item.errors)
+
         if len(bad_idx) > 0:
             good_idx.clear()
             return Response({"validation_error": {"orders": bad_idx}},
                             status=status.HTTP_400_BAD_REQUEST)
+
+        for json_obj in request.data['data']:
+            new_order_item = OrderItemSerializer(data=json_obj)
+            new_order_item.is_valid()
+            new_order_item.save()
 
         bad_idx.clear()
         return Response({"orders": good_idx}, status=status.HTTP_201_CREATED)
