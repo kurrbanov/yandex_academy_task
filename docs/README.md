@@ -60,14 +60,14 @@ vim gunicorn_config.py
 
 ```python
 command = '/home/entrant/yandex_academy_task/venv/bin/gunicorn'
-pythonpath = '/home/entrant/yandex_academy_task/restapi_project'
+pythonpath = '/home/entrant/yandex_academy_task/server'
 bind = '127.0.0.1:8001'
 workers = 9 
 user = 'entrant'
 limit_request_fields = 32000
 limit_request_field_size = 0
 # environment variables
-raw_env = 'DJANGO_SETTINGS_MODULE=restapi_project.settings'
+raw_env = 'DJANGO_SETTINGS_MODULE=server.settings'
 ```
 
 Создадим папку bin и внутри неё start_gunicorn.sh
