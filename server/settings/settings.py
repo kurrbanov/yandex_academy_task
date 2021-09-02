@@ -83,7 +83,7 @@ DATABASES = {
         'NAME': env_config('DB_NAME'),
         'USER': env_config('DB_USER'),
         'PASSWORD': env_config('DB_PASSWORD'),
-        'HOST': '127.0.0.1',
+        'HOST': env_config('DB_DOCKER_HOST'),
         'PORT': 5432
     }
 }
