@@ -83,7 +83,7 @@ DATABASES = {
         'NAME': env_config('POSTGRES_DB'),
         'USER': env_config('POSTGRES_USER'),
         'PASSWORD': env_config('POSTGRES_PASSWORD'),
-        'HOST': 'db',
+        'HOST': env_config('DB_DOCKER_HOST'),
         'PORT': 5432
     }
 }
