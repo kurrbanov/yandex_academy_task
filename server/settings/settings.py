@@ -27,7 +27,7 @@ SECRET_KEY = env_config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 # Application definition
 
@@ -80,10 +80,10 @@ WSGI_APPLICATION = 'settings.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env_config('DB_NAME'),
-        'USER': env_config('DB_USER'),
-        'PASSWORD': env_config('DB_PASSWORD'),
-        'HOST': '127.0.0.1',
+        'NAME': env_config('POSTGRES_DB'),
+        'USER': env_config('POSTGRES_USER'),
+        'PASSWORD': env_config('POSTGRES_PASSWORD'),
+        'HOST': env_config('DB_DOCKER_HOST'),
         'PORT': 5432
     }
 }
